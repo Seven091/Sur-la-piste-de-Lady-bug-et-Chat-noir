@@ -10,7 +10,6 @@
             --primary-miraculous: #e3000b;
             --dark-miraculous: #1a1a1a;
             --light-miraculous: #f4f4f9;
-            --accent-ladybug: #ff4d4d;
         }
 
         body {
@@ -54,7 +53,7 @@
         }
 
         #sidebar {
-            width: 350px;
+            width: 380px;
             background: #222222;
             border-right: 2px solid #444;
             display: flex;
@@ -86,7 +85,7 @@
             border: 1px solid #444;
             border-radius: 8px;
             padding: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -104,14 +103,59 @@
 
         .location-card h3 {
             margin: 0 0 5px;
-            font-size: 1rem;
-            color: #fff;
+            font-size: 0.95rem;
+            color: #ffd700;
         }
 
         .location-card p {
-            margin: 0;
+            margin: 0 0 10px;
+            font-size: 0.85rem;
+            color: #ddd;
+        }
+
+        .question-box {
+            background: #1e1e1e;
+            padding: 8px;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary-miraculous);
             font-size: 0.8rem;
-            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .answer-container {
+            display: flex;
+            gap: 5px;
+        }
+
+        .answer-input {
+            flex: 1;
+            background: #2a2a2a;
+            border: 1px solid #555;
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .answer-btn {
+            background: var(--primary-miraculous);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .answer-btn:hover {
+            background: #ff1a25;
+        }
+
+        .feedback {
+            margin-top: 5px;
+            font-size: 0.75rem;
+            font-weight: bold;
         }
 
         #map {
@@ -157,10 +201,10 @@
             }
             #sidebar {
                 width: 100%;
-                height: 40vh;
+                height: 45vh;
             }
             #map {
-                height: 60vh;
+                height: 55vh;
             }
         }
     </style>
@@ -169,17 +213,17 @@
 
     <header>
         <h1>Paris Explorer : Miraculous Edition</h1>
-        <p>Découvre les vrais lieux parisiens de Marinette et Adrien à travers la ville !</p>
+        <p>Relève les défis géographiques des lieux visités par Marinette et ses amis !</p>
     </header>
 
     <div id="main-container">
         <div id="sidebar">
-            <div id="mission-panel">
-                <h2>🎯 Mission d'Exploration</h2>
-                <p id="mission-desc">Sélectionne une étape pour découvrir le site réel qui a inspiré le dessin animé.</p>
+        <div id="mission-panel">
+                <h2>🎯 Enquête Parisienne</h2>
+                <p id="mission-desc">Clique sur un lieu pour le localiser sur le plan, puis réponds au défi pour prouver ta connaissance de Paris et de la série.</p>
             </div>
             <div id="locations-list">
-                <!-- Généré dynamiquement en JS -->
+                <!-- Généré dynamiquement -->
             </div>
         </div>
         <div id="map"></div>
@@ -187,66 +231,73 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Données des lieux inspirés de Miraculous et de l'épisode Ikari Gozen
+        // Données des missions géographiques et culturelles
         const miraculousLocations = [
             {
                 id: 1,
                 name: "La Boulangerie Dupain-Cheng",
-                coords: [48.8566, 2.3522], // Coordonnées fictives/représentatives dans le 3e/4e arrondissement
-                realName: "Boulangerie Traditionnelle Parisienne (Inspiration)",
-                description: "Le quartier de la célèbre boulangerie de Marinette s'inspire du Marais et des rues pittoresques de Paris. Dans la vraie vie, les boulangeries traditionnelles françaises regorgent de croissants et de macarons !",
-                episodeRef: "Lieu emblématique de la série"
+                coords: [48.8566, 2.3522],
+                realName: "Boulangerie Traditionnelle (Quartier du Marais)",
+                description: "Le repère familial de Marinette. Dans la vraie vie, ce type de commerce de quartier fait battre le cœur de la gastronomie française.",
+                episodeRef: "Quartier résidentiel de référence",
+                question: "Dans quel arrondissement fictif (proche du centre historique) se situe principalement l'action quotidienne de Marinette ? (Indice : entre le 3e et 4e)",
+                answer: "3"
             },
             {
                 id: 2,
                 name: "Le Musée du Louvre & La Pyramide",
                 coords: [48.8606, 2.3376],
                 realName: "Musée du Louvre",
-                description: "Point de rassemblement crucial dans l'épisode 'Ikari Gozen' pour la course d'orientation amicale. C'est le plus grand musée d'art au monde, abritant la Joconde.",
-                episodeRef: "Épisode : Ikari Gozen"
+                description: "Point de ralliement de la chasse aux trésors dans l'épisode 'Ikari Gozen'. C'est le plus grand musée d'art et d'antiquités au monde.",
+                episodeRef: "Épisode : Ikari Gozen",
+                question: "Quelle célèbre structure en verre et en métal orne la cour principale du Louvre ?",
+                answer: "pyramide"
             },
             {
                 id: 3,
                 name: "Les Quais de Seine",
                 coords: [48.8584, 2.3372],
-                realName: "Les Quais de la Seine",
-                description: "Parcourus par les duos d'amis lors de leur chasse aux indices dans 'Ikari Gozen'. Les berges de la Seine offrent une vue imprenable et sont classées au patrimoine mondial de l'UNESCO.",
-                episodeRef: "Épisode : Ikari Gozen"
+                realName: "Les Berges de la Seine",
+                description: "Parcourus par les duos d'amis le long du fleuve. Un site classé au patrimoine mondial de l'UNESCO.",
+                episodeRef: "Épisode : Ikari Gozen",
+                question: "Comment appelle-t-on les célèbres boîtes vertes des marchands de livres anciens installés le long de ce fleuve ?",
+                answer: "bouquinistes"
             },
             {
                 id: 4,
                 name: "La Place des Vosges",
                 coords: [48.8556, 2.3656],
                 realName: "Place des Vosges",
-                description: "L'un des plus anciens parcs de Paris, souvent représenté ou évoqué pour les promenades des personnages dans le quartier. Un lieu réel chargé d'histoire littéraire et architecturale.",
-                episodeRef: "Quartier résidentiel fréquenté"
+                description: "L'une des plus anciennes places de Paris, cadre de promenades bucoliques pour les personnages.",
+                episodeRef: "Ambiance des parcs parisiens",
+                question: "Sous quel ancien nom royal cette place historique a-t-elle été initialement construite sous Louis XIII ?",
+                answer: "place royale"
             },
             {
                 id: 5,
                 name: "La Tour Eiffel",
                 coords: [48.8584, 2.2945],
                 realName: "Tour Eiffel",
-                description: "Le symbole ultime de Paris et le terrain de jeu aérien favori de Ladybug et Chat Noir pour leurs patrouilles ou leurs combats contre les akumas.",
-                episodeRef: "Présent dans tous les épisodes"
+                description: "L'emblème de la capitale, théâtre des voltiges de Ladybug et Chat Noir.",
+                episodeRef: "Panorama permanent de la série",
+                question: "Pour quelle grande exposition universelle ce monument de 330 mètres a-t-il été construit en 1889 ?",
+                answer: "exposition universelle"
             }
         ];
 
-        // Initialisation de la carte centrée sur Paris
+        // Initialisation de la carte
         const map = L.map('map').setView([48.8566, 2.3522], 13);
 
-        // Ajout du fond de carte OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
         const markers = {};
         const listContainer = document.getElementById('locations-list');
         const missionDesc = document.getElementById('mission-desc');
 
-        // Génération de la liste et des marqueurs sur la carte
         miraculousLocations.forEach(loc => {
-            // Création du marqueur Leaflet
             const marker = L.marker(loc.coords).addTo(map);
             
             marker.bindPopup(`
@@ -260,32 +311,60 @@
 
             markers[loc.id] = marker;
 
-            // Création de la carte dans la barre latérale
+            // Création de la carte avec la question intégrée
             const card = document.createElement('div');
             card.className = 'location-card';
             card.innerHTML = `
-                <h3>${loc.name}</h3>
-                <p>${loc.realName}</p>
+                <h3>📍 ${loc.name}</h3>
+                <p><em>${loc.realName}</em></p>
+                <div class="question-box">
+                    <strong>Défi :</strong> ${loc.question}
+                </div>
+                <div class="answer-container">
+                    <input type="text" class="answer-input" placeholder="Ta réponse..." id="input-${loc.id}">
+                    <button class="answer-btn" onclick="checkAnswer(${loc.id})">Valider</button>
+                </div>
+                <div class="feedback" id="feedback-${loc.id}"></div>
             `;
 
-            card.addEventListener('click', () => {
-                // Retirer la classe active de toutes les cartes
+            // Sélection du lieu au clic sur la carte latérale
+            card.addEventListener('click', (e) => {
+                // Éviter le déclenchement si on clique sur l'input ou le bouton
+                if(e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+
                 document.querySelectorAll('.location-card').forEach(c => c.classList.remove('active'));
                 card.classList.add('active');
 
-                // Centrer la carte sur le lieu choisi et ouvrir le popup
                 map.flyTo(loc.coords, 16, {
                     animate: true,
                     duration: 1.5
                 });
                 marker.openPopup();
 
-                // Mettre à jour le texte de mission
-                missionDesc.innerHTML = `<strong>Exploration :</strong> ${loc.name}<br><span style="font-size:0.85rem; color:#ccc;">${loc.description}</span>`;
+                missionDesc.innerHTML = `<strong>Lieu sélectionné :</strong> ${loc.name}<br><span style="font-size:0.85rem; color:#ccc;">${loc.description}</span>`;
             });
 
             listContainer.appendChild(card);
         });
+
+        // Fonction de vérification des réponses de Paris Explorer
+        function checkAnswer(id) {
+            const loc = miraculousLocations.find(l => l.id === id);
+            const inputVal = document.getElementById(`input-${id}`).value.trim().toLowerCase();
+            const feedbackEl = document.getElementById(`feedback-${id}`);
+
+            if (inputVal === loc.answer || inputVal.includes(loc.answer)) {
+                feedbackEl.style.color = "#4cd137";
+                feedbackEl.innerHTML = "✨ Bravo ! C'est la bonne réponse. Le lieu est validé !";
+                
+                // Centrer et ouvrir le popup automatiquement en cas de succès
+                map.flyTo(loc.coords, 16);
+                markers[id].openPopup();
+            } else {
+                feedbackEl.style.color = "#e3000b";
+                feedbackEl.innerHTML = "❌ Oups, essaie encore ! Regarde bien les indices de la ville.";
+            }
+        }
     </script>
 </body>
 </html>
