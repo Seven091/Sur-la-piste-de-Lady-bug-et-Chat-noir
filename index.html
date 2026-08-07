@@ -29,21 +29,30 @@
             text-align: center;
             border-bottom: 4px solid #ffd700;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 30px;
+            padding-right: 30px;
         }
 
         header h1 {
             margin: 0;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             color: #ffffff;
             text-transform: uppercase;
             letter-spacing: 2px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
         }
 
-        header p {
-            margin: 5px 0 0;
-            font-size: 0.9rem;
-            color: #ffcccc;
+        #score-board {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #ffd700;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 1rem;
         }
 
         #main-container {
@@ -53,7 +62,7 @@
         }
 
         #sidebar {
-            width: 400px;
+            width: 420px;
             background: #222222;
             border-right: 2px solid #444;
             display: flex;
@@ -70,10 +79,34 @@
             max-height: 100%;
         }
 
-        #game-panel h2 {
-            margin-top: 0;
-            color: #ffd700;
-            font-size: 1.1rem;
+        .login-box {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #555;
+        }
+
+        .login-box input {
+            width: calc(100% - 16px);
+            background: #222;
+            border: 1px solid #666;
+            color: white;
+            padding: 8px;
+            margin-top: 8px;
+            border-radius: 4px;
+        }
+
+        .login-box button {
+            margin-top: 10px;
+            background: var(--primary-miraculous);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         .question-card {
@@ -82,11 +115,17 @@
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
+            display: none;
+        }
+
+        .question-card.active-step {
+            display: block;
+            border-color: #ffd700;
         }
 
         .question-card h3 {
             margin: 0 0 10px;
-            font-size: 0.95rem;
+            font-size: 1rem;
             color: #ffd700;
         }
 
@@ -137,6 +176,32 @@
             font-weight: bold;
         }
 
+        .photo-challenge {
+            margin-top: 12px;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #ffd700;
+            display: none;
+        }
+
+        .photo-challenge p {
+            font-size: 0.8rem;
+            margin: 0 0 8px;
+            color: #fff;
+        }
+
+        .photo-btn {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         #map {
             flex: 1;
             height: 100%;
@@ -147,6 +212,7 @@
             color: #fff;
             border-radius: 8px;
             border: 2px solid var(--primary-miraculous);
+            max-width: 300px;
         }
 
         .leaflet-popup-tip {
@@ -156,11 +222,21 @@
         .popup-content h3 {
             color: #ffd700;
             margin-top: 0;
+            font-size: 0.95rem;
         }
 
         .popup-content p {
-            font-size: 0.85rem;
-            line-height: 1.4;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .popup-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-top: 5px;
+            border: 1px solid #555;
         }
 
         @media (max-width: 768px) {
@@ -180,17 +256,23 @@
 <body>
 
     <header>
-        <h1>Paris Explorer : Miraculous Edition</h1>
-        <p>Jeu de questions-réponses pour découvrir les vrais monuments parisiens de Marinette !</p>
+        <h1>Paris Explorer : Miraculous</h1>
+        <div id="score-board">Score : <span id="score-val">0</span> pts</div>
     </header>
 
     <div id="main-container">
         <div id="sidebar">
             <div id="game-panel">
-                <h2>🎯 Questionnaire Parisien</h2>
-                <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 15px;">Réponds aux énigmes géographiques et culturelles. Chaque bonne réponse mettra le monument en valeur sur le plan interactif !</p>
+                <div class="login-box" id="login-section">
+                    <h3>👥 Identification du Groupe</h3>
+                    <p style="font-size: 0.8rem; color: #aaa; margin: 5px 0;">Entrez votre nom d'équipe et votre code secret pour commencer l'enquête.</p>
+                    <input type="text" id="team-name" placeholder="Nom de l'équipe (ex: Les Kwamis)">
+                    <input type="password" id="team-code" placeholder="Code secret du groupe">
+                    <button onclick="startMission()">Démarrer l'aventure</button>
+                </div>
+
                 <div id="questions-container">
-                    <!-- Les questions du jeu s'injecteront ici -->
+                    <!-- Les étapes du jeu s'injecteront ici -->
                 </div>
             </div>
         </div>
@@ -199,75 +281,87 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Données du jeu Paris Explorer (Thème Miraculous / Lieux réels)
+        // Données des lieux incontournables de Miraculous et de Paris
         const gameData = [
             {
                 id: 1,
-                name: "La Boulangerie Dupain-Cheng (Quartier historique)",
+                name: "La Boulangerie Dupain-Cheng",
                 coords: [48.8566, 2.3522],
-                realDesc: "Le quartier de la célèbre boulangerie s'inspire du cœur historique de Paris. Dans la vraie vie, ces quartiers pittoresques regorgent de commerces de proximité traditionnels.",
-                question: "Dans quel secteur historique du centre de Paris s'intègre l'ambiance des ruelles fréquentées par Marinette ?",
+                realDesc: "La célèbre boulangerie de Marinette et ses parents, située dans le quartier pittoresque du Marais.",
+                imgUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60", // Illustration boulangerie / viennoiseries
+                question: "Quel délicieux produit français Marinette et son père préparent-ils constamment dans leur commerce familial ?",
                 options: [
-                    "Le Marais / Centre historique",
-                    "Le quartier financier de La Défense",
-                    "Le sommet de la colline de Montmartre"
+                    "Des macarons et des croissants frais",
+                    "Des pizzas napolitaines géantes",
+                    "Des bretzels traditionnels alsaciens"
                 ],
-                correctIndex: 0
+                correctIndex: 0,
+                points: 10
             },
             {
                 id: 2,
-                name: "Le Musée du Louvre & La Pyramide",
-                coords: [48.8606, 2.3376],
-                realDesc: "Point de ralliement de la course d'orientation amicale dans l'épisode 'Ikari Gozen'. C'est le plus grand musée d'art au monde.",
-                question: "Quelle célèbre structure géométrique en verre et métal trône au milieu de la cour principale du Louvre ?",
+                name: "Le Collège Françoise Dupont",
+                coords: [48.8530, 2.3690],
+                realDesc: "L'établissement scolaire où étudient Marinette, Adrien, Alya et Chloé.",
+                imgUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=500&auto=format&fit=crop&q=60", // Illustration école / collège historique
+                question: "Comment se nomme le fameux collège parisien fréquenté par les héros de la série ?",
                 options: [
-                    "Un immense dôme art déco",
-                    "Une pyramide moderne",
-                    "Un obélisque égyptien ancien"
+                    "Le Collège Victor Hugo",
+                    "Le Collège Françoise Dupont",
+                    "Le Lycée Henri IV"
                 ],
-                correctIndex: 1
+                correctIndex: 1,
+                points: 10
             },
             {
                 id: 3,
-                name: "Les Quais de Seine",
-                coords: [48.8584, 2.3372],
-                realDesc: "Parcourus par les duos d'amis le long du fleuve dans 'Ikari Gozen'. Un site classé au patrimoine mondial de l'UNESCO.",
-                episodeRef: "Épisode : Ikari Gozen",
-                question: "Comment nomme-t-on les fameux boîtiers métalliques verts des vendeurs de livres d'occasion fixés sur les murets de ce fleuve ?",
+                name: "Le Cinéma Grand Rex",
+                coords: [48.8708, 2.3488],
+                realDesc: "Le cinéma emblématique de Paris où les personnages se rendent parfois pour se détendre (comme dans certains épisodes).",
+                imgUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60", // Illustration cinéma / salle obscure
+                question: "Quel célèbre cinéma historique du grand boulevard parisien est un repère culturel majeur de la ville ?",
                 options: [
-                    "Les armoires à livres",
-                    "Les boîtes aux lettres royales",
-                    "Les boîtes des bouquinistes"
+                    "Le Grand Rex",
+                    "L'Olympia",
+                    "La Comédie-Française"
                 ],
-                correctIndex: 2
+                correctIndex: 0,
+                points: 10
             },
             {
                 id: 4,
-                name: "La Place des Vosges",
-                coords: [48.8556, 2.3656],
-                realDesc: "L'une des plus anciennes places de Paris, cadre de promenades bucoliques pour les personnages.",
-                question: "Sous quel nom royal cette place carrée historique bordée de briques rouges a-t-elle été initialement inaugurée sous Louis XIII ?",
+                name: "La Tour Eiffel",
+                coords: [48.8584, 2.2945],
+                realDesc: "L'emblème absolu de Paris, point de vue imprenable et terrain de voltige de Ladybug et Chat Noir.",
+                imgUrl: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=500&auto=format&fit=crop&q=60", // Illustration Tour Eiffel
+                question: "Combien de mètres de hauteur environ mesure ce monument de fer forgé construit pour l'Exposition universelle de 1889 ?",
                 options: [
-                    "La Place Royale",
-                    "La Place de l'Empire",
-                    "La Place de la République"
+                    "150 mètres",
+                    "330 mètres",
+                    "500 mètres"
                 ],
-                correctIndex: 0
+                correctIndex: 1,
+                points: 15
             },
             {
                 id: 5,
-                name: "La Tour Eiffel",
-                coords: [48.8584, 2.2945],
-                realDesc: "L'emblème de la capitale, théâtre des voltiges aériennes de Ladybug et Chat Noir.",
-                question: "Pour quel événement majeur du 19e siècle ce monument de fer de 330 mètres a-t-il été édifié en 1889 ?",
+                name: "Le Musée du Louvre & La Pyramide",
+                coords: [48.8606, 2.3376],
+                realDesc: "Le plus grand musée du monde, théâtre de nombreux mystères et combats dans l'univers de Miraculous.",
+                imgUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=500&auto=format&fit=crop&q=60", // Illustration Louvre / Pyramide
+                question: "Quelle célèbre œuvre d'art mondialement connue est jalousement conservée à l'intérieur de ce palais-musée ?",
                 options: [
-                    "Les Jeux Olympiques d'été",
-                    "L'Exposition universelle de Paris",
-                    "Le centenaire de la Révolution française"
+                    "La Joconde de Léonard de Vinci",
+                    "Le Penseur de Rodin",
+                    "La Liberté guidant le peuple"
                 ],
-                correctIndex: 1
+                correctIndex: 0,
+                points: 15
             }
         ];
+
+        let currentScore = 0;
+        let currentStepIndex = 0;
 
         // Initialisation de la carte centrée sur Paris
         const map = L.map('map').setView([48.8566, 2.3522], 13);
@@ -278,50 +372,70 @@
         }).addTo(map);
 
         const markers = {};
-        const questionsContainer = document.getElementById('questions-container');
 
-        // Génération dynamique des questions (Principe de Paris Explorer)
-        gameData.forEach((item, index) => {
-            // Création du marqueur masqué ou initial sur la carte
-            const marker = L.marker(item.coords).addTo(map);
-            marker.bindPopup(`
-                <div class="popup-content">
-                    <h3>${item.name}</h3>
-                    <p>${item.realDesc}</p>
-                </div>
-            `);
-            markers[item.id] = marker;
+        function startMission() {
+            const teamName = document.getElementById('team-name').value.trim();
+            const teamCode = document.getElementById('team-code').value.trim();
 
-            // Création de la carte de question dans le panneau latéral
-            const card = document.createElement('div');
-            card.className = 'question-card';
-            card.id = `card-${item.id}`;
+            if (!teamName || !teamCode) {
+                alert("Veuillez entrer un nom d'équipe et un code pour lancer l'aventure !");
+                return;
+            }
 
-            let optionsHtml = '';
-            item.options.forEach((opt, optIndex) => {
-                optionsHtml += `<button class="option-btn" onclick="checkAnswer(${item.id}, ${optIndex})">${opt}</button>`;
+            document.getElementById('login-section').style.display = 'none';
+            buildGameInterface();
+        }
+
+        function buildGameInterface() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = "";
+
+            gameData.forEach((item, index) => {
+                // Création du marqueur sur la carte avec l'image du dessin animé/lieu réel
+                const marker = L.marker(item.coords).addTo(map);
+                marker.bindPopup(`
+                    <div class="popup-content">
+                        <h3>📍 ${item.name}</h3>
+                        <p>${item.realDesc}</p>
+                        <img src="${item.imgUrl}" class="popup-img" alt="${item.name}">
+                    </div>
+                `);
+                markers[item.id] = marker;
+
+                // Création de la carte de question
+                const card = document.createElement('div');
+                card.className = `question-card ${index === 0 ? 'active-step' : ''}`;
+                card.id = `card-${item.id}`;
+
+                let optionsHtml = '';
+                item.options.forEach((opt, optIndex) => {
+                    optionsHtml += `<button class="option-btn" onclick="checkAnswer(${item.id}, ${optIndex})">${opt}</button>`;
+                });
+
+                card.innerHTML = `
+                    <h3>Étape ${index + 1} : ${item.name}</h3>
+                    <p><strong>Énigme :</strong> ${item.question}</p>
+                    <div class="options-container" id="options-${item.id}">
+                        ${optionsHtml}
+                    </div>
+                    <div class="feedback-msg" id="feedback-${item.id}"></div>
+                    <div class="photo-challenge" id="photo-${item.id}">
+                        <p>📸 <strong>Défi Photo sur place :</strong> Prenez votre équipe en photo devant ce lieu réel de Paris pour valider l'étape !</p>
+                        <button class="photo-btn" onclick="validatePhoto(${item.id})">Valider la Photo (+${item.points} pts)</button>
+                    </div>
+                `;
+
+                container.appendChild(card);
             });
+        }
 
-            card.innerHTML = `
-                <h3>Étape ${index + 1}</h3>
-                <p><strong>Question :</strong> ${item.question}</p>
-                <div class="options-container" id="options-${item.id}">
-                    ${optionsHtml}
-                </div>
-                <div class="feedback-msg" id="feedback-${item.id}"></div>
-            `;
-
-            questionsContainer.appendChild(card);
-        });
-
-        // Fonction de vérification propre à Paris Explorer
         function checkAnswer(id, selectedOptionIndex) {
             const item = gameData.find(i => i.id === id);
             const optionsContainer = document.getElementById(`options-${id}`);
             const feedbackEl = document.getElementById(`feedback-${id}`);
+            const photoBox = document.getElementById(`photo-${id}`);
             const buttons = optionsContainer.getElementsByTagName('button');
 
-            // Désactiver tous les boutons de cette question après un choix
             for (let btn of buttons) {
                 btn.disabled = true;
             }
@@ -329,26 +443,59 @@
             if (selectedOptionIndex === item.correctIndex) {
                 buttons[selectedOptionIndex].classList.add('correct');
                 feedbackEl.style.color = "#2ecc71";
-                feedbackEl.innerHTML = "✨ Bonne réponse ! Le lieu s'illumine sur le plan.";
+                feedbackEl.innerHTML = "✨ Bonne réponse ! Le lieu est repéré sur la carte.";
 
-                // Action sur la carte : zoomer et ouvrir le popup du lieu découvert
-                map.flyTo(item.coords, 16, {
-                    animate: true,
-                    duration: 1.5
-                });
+                // Centrer la carte sur le lieu et ouvrir le pop-up avec l'image
+                map.flyTo(item.coords, 16, { animate: true, duration: 1.5 });
                 markers[id].openPopup();
+
+                // Afficher le défi photo sur le lieu
+                photoBox.style.display = "block";
             } else {
                 buttons[selectedOptionIndex].classList.add('incorrect');
                 buttons[item.correctIndex].classList.add('correct');
                 feedbackEl.style.color = "#e74c3c";
-                feedbackEl.innerHTML = "❌ Mauvaise réponse. Regarde la bonne réponse en vert et repère-la sur le plan.";
+                feedbackEl.innerHTML = "❌ Erreur. Regarde la bonne réponse et repère le lieu sur le plan.";
 
-                // Centrer quand même pour montrer l'emplacement réel aux enfants
-                map.flyTo(item.coords, 15, {
-                    animate: true,
-                    duration: 1.5
-                });
+                map.flyTo(item.coords, 15, { animate: true, duration: 1.5 });
                 markers[id].openPopup();
+
+                // Passer à l'étape suivante même en cas d'erreur après un court délai pour ne pas bloquer les enfants
+                setTimeout(() => nextStep(id), 3000);
+            }
+        }
+
+        function validatePhoto(id) {
+            const item = gameData.find(i => i.id === id);
+            currentScore += item.points;
+            document.getElementById('score-val').innerText = currentScore;
+
+            const photoBox = document.getElementById(`photo-${id}`);
+            photoBox.innerHTML = "<p style='color: #2ecc71; font-weight: bold;'>✅ Photo validée ! Points enregistrés.</p>";
+
+            setTimeout(() => nextStep(id), 1500);
+        }
+
+        function nextStep(currentId) {
+            const currentIndex = gameData.findIndex(i => i.id === currentId);
+            const currentCard = document.getElementById(`card-${currentId}`);
+            currentCard.classList.remove('active-step');
+
+            if (currentIndex + 1 < gameData.length) {
+                const nextItem = gameData[currentIndex + 1];
+                const nextCard = document.getElementById(`card-${nextItem.id}`);
+                nextCard.classList.add('active-step');
+            } else {
+                // Fin du jeu
+                const container = document.getElementById('questions-container');
+                container.innerHTML = `
+                    <div class="question-card active-step" style="text-align: center;">
+                        <h2 style="color: #ffd700;">🎉 Mission Accomplie !</h2>
+                        <p>Félicitations à votre équipe ! Vous avez retrouvé tous les repères parisiens de Marinette et ses amis.</p>
+                        <p style="font-size: 1.2rem; font-weight: bold; color: #2ecc71;">Score Final : ${currentScore} points</p>
+                        <p style="font-size: 0.85rem; color: #aaa;">Paris n'a plus de secrets pour vous. Transformez-vous en héros du quotidien !</p>
+                    </div>
+                `;
             }
         }
     </script>
