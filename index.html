@@ -191,6 +191,18 @@
             color: #fff;
         }
 
+        .photo-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .photo-file-input {
+            font-size: 0.75rem;
+            color: #aaa;
+            flex: 1;
+        }
+
         .photo-btn {
             background: #2980b9;
             color: white;
@@ -200,6 +212,10 @@
             font-size: 0.8rem;
             cursor: pointer;
             font-weight: bold;
+        }
+
+        .photo-btn:hover {
+            background: #3498db;
         }
 
         #map {
@@ -212,7 +228,7 @@
             color: #fff;
             border-radius: 8px;
             border: 2px solid var(--primary-miraculous);
-            max-width: 300px;
+            max-width: 320px;
         }
 
         .leaflet-popup-tip {
@@ -232,11 +248,21 @@
 
         .popup-img {
             width: 100%;
-            height: 140px;
+            height: 150px;
             object-fit: cover;
             border-radius: 4px;
             margin-top: 5px;
             border: 1px solid #555;
+        }
+
+        .route-hint {
+            background: #252525;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #3498db;
+            margin-bottom: 10px;
+            border: 1px dashed #3498db;
         }
 
         @media (max-width: 768px) {
@@ -266,7 +292,7 @@
                 <div class="login-box" id="login-section">
                     <h3>👥 Identification du Groupe</h3>
                     <p style="font-size: 0.8rem; color: #aaa; margin: 5px 0;">Entrez votre nom d'équipe et votre code secret pour commencer l'enquête.</p>
-                    <input type="text" id="team-name" placeholder="Nom de l'équipe (ex: Les Kwamis)">
+                    <input type="text" id="team-name" placeholder="Nom de l'équipe (ex: Équipe Ladybug)">
                     <input type="password" id="team-code" placeholder="Code secret du groupe">
                     <button onclick="startMission()">Démarrer l'aventure</button>
                 </div>
@@ -281,74 +307,55 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Données des lieux incontournables de Miraculous et de Paris
+        /* 
+           ORDRE OPTIMISÉ POUR ÉVITER LES ALLERS-RETOURS FATIGANTS DANS PARIS :
+           1. Collège Françoise Dupont (Quartier Saint-Paul / Marais Sud)
+           2. Boulangerie Dupain-Cheng (Quartier du Marais / Centre)
+           3. Musée du Louvre & La Pyramide (1er arr., en longeant la Seine vers l'ouest)
+           4. Cinéma Grand Rex (Grands Boulevards, remontée vers le nord)
+           5. Tour Eiffel (7e arr., direction finale vers l'ouest)
+        */
         const gameData = [
             {
                 id: 1,
-                name: "La Boulangerie Dupain-Cheng",
-                coords: [48.8566, 2.3522],
-                realDesc: "La célèbre boulangerie de Marinette et ses parents, située dans le quartier pittoresque du Marais.",
-                imgUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60", // Illustration boulangerie / viennoiseries
-                question: "Quel délicieux produit français Marinette et son père préparent-ils constamment dans leur commerce familial ?",
+                name: "Le Collège Françoise Dupont",
+                coords: [48.8530, 2.3690],
+                realDesc: "L'école secondaire de Marinette et Adrien. Dans le dessin animé, l'architecture s'inspire des établissements parisiens traditionnels.",
+                // Image de référence inspirée/simulée du dessin animé (à remplacer par votre asset local si besoin)
+                imgUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=500&auto=format&fit=crop&q=60", 
+                routeHint: "📍 Point de départ de votre exploration dans le secteur est de votre parcours.",
+                question: "Où se rencontrent régulièrement les camarades de classe de Marinette avant le début des cours ?",
                 options: [
-                    "Des macarons et des croissants frais",
-                    "Des pizzas napolitaines géantes",
-                    "Des bretzels traditionnels alsaciens"
+                    "Dans la cour principale et devant les grilles de l'établissement",
+                    "Sur le toit-terrasse secret de la grande tour centrale",
+                    "Directement à l'intérieur de la salle de sciences physiques"
                 ],
                 correctIndex: 0,
                 points: 10
             },
             {
                 id: 2,
-                name: "Le Collège Françoise Dupont",
-                coords: [48.8530, 2.3690],
-                realDesc: "L'établissement scolaire où étudient Marinette, Adrien, Alya et Chloé.",
-                imgUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=500&auto=format&fit=crop&q=60", // Illustration école / collège historique
-                question: "Comment se nomme le fameux collège parisien fréquenté par les héros de la série ?",
+                name: "La Boulangerie Dupain-Cheng",
+                coords: [48.8566, 2.3522],
+                realDesc: "Le foyer et commerce de la famille Dupain-Cheng dans la série, situé dans un quartier vivant du centre historique.",
+                imgUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60", 
+                routeHint: "🧭 Déplacement court et fluide vers le nord-ouest en direction du centre.",
+                question: "Que trouve-t-on juste au rez-de-chaussée de l'immeuble où habite la famille de l'héroïne ?",
                 options: [
-                    "Le Collège Victor Hugo",
-                    "Le Collège Françoise Dupont",
-                    "Le Lycée Henri IV"
-                ],
-                correctIndex: 1,
-                points: 10
-            },
-            {
-                id: 3,
-                name: "Le Cinéma Grand Rex",
-                coords: [48.8708, 2.3488],
-                realDesc: "Le cinéma emblématique de Paris où les personnages se rendent parfois pour se détendre (comme dans certains épisodes).",
-                imgUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60", // Illustration cinéma / salle obscure
-                question: "Quel célèbre cinéma historique du grand boulevard parisien est un repère culturel majeur de la ville ?",
-                options: [
-                    "Le Grand Rex",
-                    "L'Olympia",
-                    "La Comédie-Française"
+                    "Une boulangerie-pâtisserie artisanale renommée",
+                    "Un atelier secret de fabrication de bijoux",
+                    "Une boutique exclusive de mode parisienne"
                 ],
                 correctIndex: 0,
                 points: 10
             },
             {
-                id: 4,
-                name: "La Tour Eiffel",
-                coords: [48.8584, 2.2945],
-                realDesc: "L'emblème absolu de Paris, point de vue imprenable et terrain de voltige de Ladybug et Chat Noir.",
-                imgUrl: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=500&auto=format&fit=crop&q=60", // Illustration Tour Eiffel
-                question: "Combien de mètres de hauteur environ mesure ce monument de fer forgé construit pour l'Exposition universelle de 1889 ?",
-                options: [
-                    "150 mètres",
-                    "330 mètres",
-                    "500 mètres"
-                ],
-                correctIndex: 1,
-                points: 15
-            },
-            {
-                id: 5,
+                id: 3,
                 name: "Le Musée du Louvre & La Pyramide",
                 coords: [48.8606, 2.3376],
-                realDesc: "Le plus grand musée du monde, théâtre de nombreux mystères et combats dans l'univers de Miraculous.",
-                imgUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=500&auto=format&fit=crop&q=60", // Illustration Louvre / Pyramide
+                realDesc: "Le plus grand musée du monde, théâtre fréquent de mystères et d'affrontements spectaculaires dans la série.",
+                imgUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=500&auto=format&fit=crop&q=60", 
+                routeHint: "🧭 Continuation naturelle vers l'ouest en longeant les quais de la Seine.",
                 question: "Quelle célèbre œuvre d'art mondialement connue est jalousement conservée à l'intérieur de ce palais-musée ?",
                 options: [
                     "La Joconde de Léonard de Vinci",
@@ -357,11 +364,42 @@
                 ],
                 correctIndex: 0,
                 points: 15
+            },
+            {
+                id: 4,
+                name: "Le Cinéma Grand Rex",
+                coords: [48.8708, 2.3488],
+                realDesc: "La célèbre salle obscure des grands boulevards où les personnages aiment se détendre et sortir entre amis.",
+                imgUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60", 
+                routeHint: "🧭 Courte remontée vers le nord en direction des Grands Boulevards.",
+                question: "Quel type d'événement ou de loisir culturel attire particulièrement les adolescents dans ce lieu emblématique ?",
+                options: [
+                    "Assister à la projection sur grand écran de films populaires",
+                    "Participer à des tournois sportifs d'escrime en plein air",
+                    "Visiter une exposition permanente d'objets anciens"
+                ],
+                correctIndex: 0,
+                points: 10
+            },
+            {
+                id: 5,
+                name: "La Tour Eiffel",
+                coords: [48.8584, 2.2945],
+                realDesc: "L'emblème absolu de Paris, point de vue imprenable et terrain de voltige incontournable de Ladybug et Chat Noir.",
+                imgUrl: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=500&auto=format&fit=crop&q=60", 
+                routeHint: "🧭 Grand final vers l'ouest le long de la Seine pour achever le parcours en beauté.",
+                question: "Pour quel événement majeur du 19e siècle ce monument de fer de 330 mètres a-t-il été édifié en 1889 ?",
+                options: [
+                    "Les Jeux Olympiques d'été",
+                    "L'Exposition universelle de Paris",
+                    "Le centenaire de la Révolution française"
+                ],
+                correctIndex: 1,
+                points: 15
             }
         ];
 
         let currentScore = 0;
-        let currentStepIndex = 0;
 
         // Initialisation de la carte centrée sur Paris
         const map = L.map('map').setView([48.8566, 2.3522], 13);
@@ -414,14 +452,18 @@
 
                 card.innerHTML = `
                     <h3>Étape ${index + 1} : ${item.name}</h3>
+                    <div class="route-hint">${item.routeHint}</div>
                     <p><strong>Énigme :</strong> ${item.question}</p>
                     <div class="options-container" id="options-${item.id}">
                         ${optionsHtml}
                     </div>
                     <div class="feedback-msg" id="feedback-${item.id}"></div>
                     <div class="photo-challenge" id="photo-${item.id}">
-                        <p>📸 <strong>Défi Photo sur place :</strong> Prenez votre équipe en photo devant ce lieu réel de Paris pour valider l'étape !</p>
-                        <button class="photo-btn" onclick="validatePhoto(${item.id})">Valider la Photo (+${item.points} pts)</button>
+                        <p>📸 <strong>Preuve Photo (Paris Explorer) :</strong> Téléchargez la photo de votre groupe prise sur le site réel pour valider l'étape !</p>
+                        <div class="photo-input-container">
+                            <input type="file" accept="image/*" class="photo-file-input" id="file-${item.id}">
+                            <button class="photo-btn" onclick="validatePhoto(${item.id})">Envoyer</button>
+                        </div>
                     </div>
                 `;
 
@@ -449,7 +491,7 @@
                 map.flyTo(item.coords, 16, { animate: true, duration: 1.5 });
                 markers[id].openPopup();
 
-                // Afficher le défi photo sur le lieu
+                // Afficher le défi photo conforme à Paris Explorer
                 photoBox.style.display = "block";
             } else {
                 buttons[selectedOptionIndex].classList.add('incorrect');
@@ -460,18 +502,24 @@
                 map.flyTo(item.coords, 15, { animate: true, duration: 1.5 });
                 markers[id].openPopup();
 
-                // Passer à l'étape suivante même en cas d'erreur après un court délai pour ne pas bloquer les enfants
-                setTimeout(() => nextStep(id), 3000);
+                // Passer à l'étape suivante après un court délai pour ne pas bloquer les enfants
+                setTimeout(() => nextStep(id), 3500);
             }
         }
 
         function validatePhoto(id) {
+            const fileInput = document.getElementById(`file-${id}`);
+            if (fileInput.files.length === 0) {
+                alert("Veuillez sélectionner ou prendre une photo de votre groupe sur le lieu pour valider l'étape !");
+                return;
+            }
+
             const item = gameData.find(i => i.id === id);
             currentScore += item.points;
             document.getElementById('score-val').innerText = currentScore;
 
             const photoBox = document.getElementById(`photo-${id}`);
-            photoBox.innerHTML = "<p style='color: #2ecc71; font-weight: bold;'>✅ Photo validée ! Points enregistrés.</p>";
+            photoBox.innerHTML = "<p style='color: #2ecc71; font-weight: bold;'>✅ Preuve photo validée ! Points enregistrés.</p>";
 
             setTimeout(() => nextStep(id), 1500);
         }
@@ -491,7 +539,7 @@
                 container.innerHTML = `
                     <div class="question-card active-step" style="text-align: center;">
                         <h2 style="color: #ffd700;">🎉 Mission Accomplie !</h2>
-                        <p>Félicitations à votre équipe ! Vous avez retrouvé tous les repères parisiens de Marinette et ses amis.</p>
+                        <p>Félicitations à votre équipe ! Vous avez retrouvé tous les repères parisiens de Marinette et ses amis en optimisant vos déplacements.</p>
                         <p style="font-size: 1.2rem; font-weight: bold; color: #2ecc71;">Score Final : ${currentScore} points</p>
                         <p style="font-size: 0.85rem; color: #aaa;">Paris n'a plus de secrets pour vous. Transformez-vous en héros du quotidien !</p>
                     </div>
